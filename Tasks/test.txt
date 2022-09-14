@@ -1,0 +1,9 @@
+4 4
+groceryshopping
+pickupkids
+cookdinner
+bedtime
+groceryshopping cookdinner
+groceryshopping pickupkids
+pickupkids cookdinner
+cookdinner bedtime

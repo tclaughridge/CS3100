@@ -1,0 +1,19 @@
+10 8
+wakeup
+makebreakfast
+packlunches
+groceryshopping
+pickupkids
+cookdinner
+cleandishes
+watchtv
+bedtime
+sleep
+wakeup makebreakfast
+groceryshopping pickupkids
+groceryshopping cookdinner
+pickupkids cookdinner
+cookdinner cleandishes
+cleandishes bedtime
+watchtv bedtime
+bedtime sleep
