@@ -2,131 +2,118 @@
  * @file tasks.cpp
  * @author Thomas Laughridge (tcl5tu@virginia.edu)
  * @version 0.1
- * @date 2022-08-29
+ * @date 2022-09-15
+ * @copyright Copyright (c) 2022
  */
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <list>
-
-#include "graph.h"
-#include "node.h"
+#include <unordered_map>
+#include <stack>
+#include <algorithm>
 
 using namespace std;
 
-// FORWARD DECLARATIONS
-vector<int> extractIntegers(string str);
-void generateGraph(graph& g, int t, int d, vector<string> v);
-void dfs(graph g, node* curr, list<node*>& out);
+unordered_map<string, vector<string> > generateAdjList(vector<string> nodesIn, vector<string> edgesIn, int nodes, int edges) {
+    unordered_map<string, vector<string> > adjList;
 
-int main(int argc, char** argv) {
-
-    graph g;
-    int t, d;
-
-    // VERIFY CORRECT INPUT
-    if (argc != 2) {
-        cout << "Must supply the input file name as the one and only parameter" << endl;
-        exit(1);
+    for (int i = 0; i < nodes; i++) {
+        vector<string> temp;
+        for (int j = 0; j < edges; j++) {
+            string front = edgesIn[j].substr(0, edgesIn[j].find(" "));
+            string back = edgesIn[j].substr(edgesIn[j].find(" ") + 1, edgesIn[j].length());
+            if (front == nodesIn[i]) {
+                temp.push_back(back);
+            }
+        }
+        adjList.insert(make_pair(nodesIn[i], temp));
     }
 
-    // READ INPUT FILE
-    ifstream input;
-    vector<string> lines;
-    input.open(argv[1]);
-    string line;
-    if (input.is_open()) {
-        while (input) {
-            std::getline (input, line);
-            lines.insert(lines.end(), line);
+    return adjList;
+}
+
+vector<string> generateAdj(unordered_map<string, vector<string> > graph, string node) {
+    return graph.at(node);
+}
+
+vector<string> noIncoming(vector<string> Nodes, vector<string> Edges) {
+    vector<string> noIncoming;
+    for (int i = 0; i < Nodes.size(); i++) {
+        bool incoming = false;
+        for (int j = 0; j < Edges.size(); j++) {
+            string front = Edges[j].substr(0, Edges[j].find(" "));
+            string back = Edges[j].substr(Edges[j].find(" ") + 1, Edges[j].length());
+            if (back == Nodes[i]) {
+                incoming = true;
+            }
         }
-    } else { cout << "Couldn't open file\n"; }
-    lines.pop_back();
+        if (!incoming) {
+            noIncoming.push_back(Nodes[i]);
+        }
+    }
+    return noIncoming;
+}
 
-    t = extractIntegers(lines.front())[0];
-    d = extractIntegers(lines.front())[1];
 
-    // GENERATE NODES AND DEPENDENCIES
-    generateGraph(g, t, d, lines);
+void topologicalSortUtil(unordered_map<string, vector<string> > graph , string node, vector<string>& visited, stack<string>& Stack) {
 
-    // TOPOLOGICAL SORT
-    list<node*> v;
-    dfs(g, g.getNode(0), v);
+    visited.push_back(node);
 
-    // PRINT OUTPUT
-    for (list<node*>::iterator it = v.begin(); it != v.end(); it++) {
-        cout << (*it)->value << " ";
+    vector<string> adj = generateAdj(graph, node);
+    for (int i = 0; i < adj.size(); i++) {
+        if (find(visited.begin(), visited.end(), adj[i]) == visited.end()) {
+            topologicalSortUtil(graph, adj[i], visited, Stack);
+        }
+    }
+    Stack.push(node);
+}
+ 
+void topologicalSort(unordered_map<string, vector<string> > graph, vector<string>& visited, string node) {
+    stack<string> Stack;
+
+    for (auto i : graph) {
+        if (count(visited.begin(), visited.end(), i.first) == 0) {
+            topologicalSortUtil(graph, i.first, visited, Stack);
+        }
+    }
+ 
+
+    while (Stack.empty() == false) {
+        cout << Stack.top() << " ";
+        Stack.pop();
     }
     cout << endl;
+}
+
+int main() {
+    string param1, param2;
+    cin >> param1 >> param2;
+
+    int nodes = stoi(param1);
+    int edges = stoi(param2);
+
+    vector<string> nodesIn;
+    vector<string> edgesIn;
+
+    for (int i = 0; i < nodes; i++) {
+        string node;
+        cin >> node;
+        nodesIn.push_back(node);
+    }
+    for (int i = 0; i < edges; i++) {
+        string edge1, edge2, edge;
+        cin >> edge1 >> edge2;
+        edge = edge1 + " " + edge2;
+        edgesIn.push_back(edge);
+    }
+
+    // Make graph
+    unordered_map<string, vector<string> > graph = generateAdjList(nodesIn, edgesIn, nodes, edges);
+    
+    // Traverse graph
+    vector<string> visited;
+    topologicalSort(graph, visited, nodesIn[0]);
 
     return 0;
-}
-
-vector<int> extractIntegers(string str) {
-    vector<int> vec;
-    stringstream ss;
-    ss << str;
- 
-    string temp;
-    int found;
-    while (!ss.eof()) {
-        ss >> temp;
-        if (stringstream(temp) >> found) {
-            vec.push_back(found);
-        }
-        temp = "";
-    }
-
-    return vec;
-}
-
-void generateGraph(graph& g, int t, int d, vector<string> v) {
-    // GENERATE NODES AND DEPENDENCIES
-    for (int i = 1; i <= t; i++) {
-        // Create new Nodes
-        node* n = new node;
-        n->value = v[i];
-        g.addNode(n);
-
-        for (int j = t+1; j < v.size(); j++) {
-            // Create Node dependencies
-            vector<string> dep;
-
-            if (v[j].find(" ") != 0) {
-                dep.push_back(v[j].substr(0, v[j].find(" ")));
-                dep.push_back(v[j].substr(v[j].find(" ")+1, v[j].length()));
-            }
-            if (dep.front() == n->value) {
-                n->next = new node;
-                n->next->value = dep.back();
-                n = n->next;
-            }
-        }
-    }
-}
-
-void dfs(graph g, node* curr, list<node*>& out) {
-    if (curr->perm == true) {
-        // Sort Done
-        return;
-    } 
-    else if (curr->temp == true) {
-        // Cycle Exists
-        cout << "IMPOSSIBLE" << endl;
-        exit(1);
-    } 
-    else {
-        // Recurse
-        curr->temp = true;
-        vector<node*> adj = g.generateAdj(curr);
-        for (int i = 0; i < adj.size(); i++) {
-            dfs(g, adj[i], out);
-        }
-        curr->temp = false;
-        curr->perm = true;
-        out.push_front(curr);
-    }
 }

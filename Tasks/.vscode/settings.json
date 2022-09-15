@@ -1,9 +1,6 @@
 {
     "files.associations": {
         "vector": "cpp",
-        "list": "cpp",
-        "iostream": "cpp"
-    },
-    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
-    "C_Cpp.errorSquiggles": "Disabled"
+        "iosfwd": "cpp"
+    }
 }

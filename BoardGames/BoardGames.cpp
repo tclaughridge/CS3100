@@ -15,6 +15,13 @@
 
 using namespace std;
 
+void reverseStr(string& str) {
+    int n = str.length();
+    for (int i = 0; i < n / 2; i++) {
+        swap(str[i], str[n - i - 1]);
+    }
+}
+
 vector<string> readFile() {
     vector<string> lines;
     lines.push_back("");
@@ -23,6 +30,7 @@ vector<string> readFile() {
     cin >> lines[1];
     int nodes = stoi(lines[0]);
     int edges = stoi(lines[1]);
+
     for (int i = 0; i < edges; i++) {
         string td, td2;
         cin >> td;
@@ -30,6 +38,7 @@ vector<string> readFile() {
         td += " " +td2;
         lines.push_back(td);
     }
+
     string dangerous;
     cin >> dangerous;
     lines.push_back(dangerous);
@@ -43,32 +52,45 @@ vector<string> readFile() {
 
 unordered_map<int, vector<int> > generateAdjList(vector<string> v, int nodes, int edges) {
     unordered_map<int, vector<int> > adjList;
+
     for (int i = 0; i < nodes; i++) {
-        vector<int> temp;
-        for (int j = 0; j < edges + 2; j++) {
-            string front = v[j].substr(0, v[j].find(" "));
-            string back = v[j].substr(v[j].find(" ") + 1, v[j].length());
-            if (front == to_string(i)) {
-                int k = stoi(back);
-                if (!std::count(temp.begin(), temp.end(), k)) {
-                    temp.push_back(k);
-                }
-            }
-        }
-        adjList.insert(make_pair(i, temp));
+        adjList.insert(make_pair(i, vector<int>()));
     }
+    for (int i = 2; i < edges+2; i++) {
+        string front = v[i].substr(0, v[i].find(" "));
+        string back = v[i].substr(v[i].find(" ") + 1, v[i].length());
+        int k = stoi(back);
+        int l = stoi(front);
+        if (!count(adjList[stoi(front)].begin(), adjList[stoi(front)].end(), k)) {
+            adjList[stoi(front)].push_back(k);
+        }
+        if (!count(adjList[stoi(back)].begin(), adjList[stoi(back)].end(), l)) {
+            adjList[stoi(back)].push_back(l);
+        }
+    }
+
     return adjList;
+}
+
+void printGraph(unordered_map<int, vector<int> > adjList) {
+    for (unordered_map<int, vector<int> >::iterator i = adjList.begin(); i != adjList.end(); i++) {
+        cout << i->first << " -> ";
+        for (int j = 0; j < i->second.size(); j++) {
+            cout << i->second[j] << " ";
+        }
+        cout << endl;
+    }
 }
 
 vector<int> generateAdj(unordered_map<int, vector<int> > graph, int node) {
     vector<int> ret = graph.at(node);
-    sort(ret.begin(), ret.end());
+    std::sort(ret.begin(), ret.end());
     return ret;
 }
 
-void dfs(unordered_map<int, vector<int> > graph, int node, int targetNode, vector<int> visited, vector<int> danger, string path, vector<string>& out) {
+void dfs(unordered_map<int, vector<int> > graph, int node, int targetNode, vector<int> visited, vector<int> danger, vector<string> path, vector<vector<string> >& out) {
     visited.push_back(node);
-    path += to_string(node);
+    path.push_back(to_string(node));
 
     if (node == targetNode) {
         out.push_back(path);
@@ -101,12 +123,12 @@ int main() {
     }
 
     // Generate path
-    vector<string> path;
-    dfs(graph, 0, nodes-1, vector<int>(), dangerousNodes, "", path);
+    vector<vector<string> > path;
+    dfs(graph, 0, nodes-1, vector<int>(), dangerousNodes, vector<string>(), path);
 
     for (int i = 0; i < path.size(); i++) {
-        for (int j = 0; j < path[i].length(); j++) {
-            if (j != path[i].length() - 1) {
+        for (int j = 0; j < path[i].size(); j++) {
+            if (j != path[i].size() - 1) {
                 cout << path[i][j] << "-";
             } else {
                 cout << path[i][j];
