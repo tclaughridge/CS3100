@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                // "/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/usr/include",
+                "/Library/Developer/CommandLineTools/usr/include/c++/v1",
+                "/usr/local/Cellar/gcc/11.2.0_3/include/c++/11/tr1"
+            ],
+            "defines": [],
+            "macFrameworkPath": [],
+            "compilerPath": "/usr/local/bin/gcc-11",
+            "cStandard": "gnu17",
+            "intelliSenseMode": "macos-gcc-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}

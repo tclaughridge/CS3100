@@ -122,6 +122,10 @@ int main() {
         dangerousNodes.push_back(stoi(lines[i]));
     }
 
+    // Print graph
+    printGraph(graph);
+    cout << "-----------------" << endl;
+
     // Generate path
     vector<vector<string> > path;
     dfs(graph, 0, nodes-1, vector<int>(), dangerousNodes, vector<string>(), path);
