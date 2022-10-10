@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -13,8 +14,12 @@ public:
     char type;
     string name;
     int cost;
-    Node* next;
     bool visited;
+    Node* parent;
+
+    Node* whichSwitch;
+
+    vector<string> edges;
 };
 
 #endif

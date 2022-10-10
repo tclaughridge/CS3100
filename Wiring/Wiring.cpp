@@ -16,28 +16,72 @@
 #include <queue>
 
 #include "Node.h"
+#include "Edge.h"
 
 using namespace std;
+
 
 struct Compare {
     // For use in the Priority Queue Data Structure -- Taken from Stack Overflow
     // https://stackoverflow.com/questions/48840649/constructing-a-priority-queue-of-vectors?newreg=d1d8e282251647d29481c1ecf10f2e0c
-    bool operator()(vector<string> const & a, vector<string> const & b) { 
-        return stoi(a[2]) > stoi(b[2]);
+    bool operator()(Edge* const& a, Edge* const& b) { 
+        return a->cost > b->cost;
     }
 };
 
-bool meetsRequirements(vector<string> dep) {
-    // Checks if the dependency is valid
 
-    if (dep[0].front() == 'o' && dep[1].front() == 'l') {
-        return false;
+bool preSwitch(Node* n) {
+    if (n->type == 'b' || n->type == 'j' || n->type == 'o') {
+        return true;
     }
-
-    return true;
+    return false;
+}
+bool postSwitch(Node* n) {
+    if (n->type == 'l') {
+        return true;
+    }
+    return false;
+}
+bool isSwitch(Node* n) {
+    if (n->type == 's') {
+        return true;
+    }
+    return false;
 }
 
-void readFile(vector<Node*>& nodes, vector<vector<string> >& dependencies) {
+
+bool isConnectible(Edge* e) {
+    if (preSwitch(e->from) && isSwitch(e->to)) {
+        return true;
+    }
+    if (preSwitch(e->to) && isSwitch(e->from)) {
+        return true;
+    }
+
+
+    if (isSwitch(e->from) && postSwitch(e->to)) {
+        return true;
+    }
+    if (isSwitch(e->to) && postSwitch(e->from)) {
+        return true;
+    }
+
+
+    if (postSwitch(e->to) && postSwitch(e->from)) {
+        return true;
+    }
+    if (preSwitch(e->to) && preSwitch(e->from)) {
+        return true;
+    }
+    if (isSwitch(e->to) && isSwitch(e->from)) {
+        return true;
+    }
+
+    return false;
+}
+
+
+void readFile(vector<Node*>& nodes, vector<Edge*>& dependencies) {
     string in1, in2;
     cin >> in1 >> in2;
 
@@ -50,6 +94,7 @@ void readFile(vector<Node*>& nodes, vector<vector<string> >& dependencies) {
 
         Node* node = new Node();
         node->name = in3;
+        node->visited = false;
         switch (in3[0]) {
             // Breaker
             case 'b':
@@ -82,141 +127,157 @@ void readFile(vector<Node*>& nodes, vector<vector<string> >& dependencies) {
     for (int i = 0; i < c; i++) {
         string in5, in6, in7;
         cin >> in5 >> in6 >> in7;
-        vector<string> dep;
-        dep.push_back(in5);
-        dep.push_back(in6);
-        dep.push_back(in7);
-        if(meetsRequirements(dep)) {
-            dependencies.push_back(dep);
+
+        Edge* e = new Edge();
+        for (int i = 0; i < nodes.size(); i++){
+            if (nodes[i]->name == in5) {
+                e->from = nodes[i];
+            }
+            if (nodes[i]->name == in6) {
+                e->to = nodes[i];
+            }
+        }
+        e->cost = stoi(in7);
+
+        if (isConnectible(e)) {
+            dependencies.push_back(e);
         }
     }
-}
-
-unordered_map<Node*, vector<Node*> > buildGraph(vector<Node*> nodes, vector<vector<string> > dependencies) {
-    unordered_map<Node*, vector<Node*> > graph;
 
     for (int i = 0; i < nodes.size(); i++) {
-        graph.insert(make_pair(nodes[i], vector<Node*>()));
+        for (int j = 0; j < dependencies.size(); j++) {
+            if (dependencies[j]->from == nodes[i]) {
+                nodes[i]->edges.push_back(dependencies[j]->from->name + dependencies[j]->to->name);
+            }
+        }
+
+        if (nodes[i]->type == 'l') {
+            for (int j = 0; j < dependencies.size(); j++) {
+                if (dependencies[j]->from->type == 's' && dependencies[j]->to == nodes[i]) {
+                    nodes[i]->whichSwitch = dependencies[j]->from;
+                }
+            }
+        }
     }
+}
+
+
+void addEdges(Node*& n, priority_queue<Edge*, vector<Edge*>, Compare>& pq, vector<Edge*> dependencies) {
+    n->visited = true;
 
     for (int i = 0; i < dependencies.size(); i++) {
-        unordered_map<Node*, vector<Node*> >::iterator itr;
-        for (itr = graph.begin(); itr != graph.end(); itr++) {
-            if (itr->first->name == dependencies[i][0]) {
-                for (int j = 0; j < nodes.size(); j++) {
-                    if (nodes[j]->name == dependencies[i][1]) {
-                        itr->second.push_back(nodes[j]);
-                    }
-                }
-            }
-            if (itr->first->name == dependencies[i][1]) {
-                for (int j = 0; j < nodes.size(); j++) {
-                    if (nodes[j]->name == dependencies[i][0]) {
-                        itr->second.push_back(nodes[j]);
-                    }
-                }
-            }
+        if (dependencies[i]->from == n && dependencies[i]->to->visited == false) {
+            pq.push(dependencies[i]);
         }
-    }
-
-    return graph;
-}
-
-vector<Node*> generateAdj(Node* node, unordered_map<Node*, vector<Node*> > graph) {
-    vector<Node*> adj;
-    unordered_map<Node*, vector<Node*> >::iterator itr;
-    for (itr = graph.begin(); itr != graph.end(); itr++) {
-        if (itr->first->name == node->name) {
-            for (int i = 0; i < itr->second.size(); i++) {
-                adj.push_back(itr->second[i]);
-            }
-        }
-    }
-    return adj;
-}
-
-void addEdges(std::priority_queue<vector<string>, vector<vector<string> >, Compare>& pq, vector<vector<string> > dependencies, Node*& node, unordered_map<Node*, vector<Node*> > graph) {
-    node->visited = true;
-
-    vector<Node*> adj = generateAdj(node, graph);
-    for (int i = 0; i < dependencies.size(); i++) {
-        if (dependencies[i][0] == node->name) {
-            for (int j = 0; j < adj.size(); j++) {
-                if (dependencies[i][1] == adj[j]->name && adj[j]->visited == false) {
-                    vector<string> edge;
-                    edge.push_back(dependencies[i][0]);
-                    edge.push_back(dependencies[i][1]);
-                    edge.push_back(dependencies[i][2]);
-                    pq.push(edge);
-                }
-            }
+        if (dependencies[i]->to == n && dependencies[i]->from->visited == false) {
+            pq.push(dependencies[i]);
         }
     }
 }
 
-int generateMST(vector<Node*> nodes, vector<vector<string> > dependencies, unordered_map<Node*, vector<Node*> > graph, vector<Node*>& mst) {
-    int sumMST, edgeCount = 0;
-    int m = nodes.size() - 1;
-    std::priority_queue<vector<string>, vector<vector<string> >, Compare> pq;
 
-    for (int i = 0; i < nodes.size(); i++) {
-        addEdges(pq, dependencies, nodes[i], graph);
-    }
-    for (int i = 0; i < pq.size(); i++) {
-        cout << pq.top()[0] << " " << pq.top()[1] << " " << pq.top()[2] << endl;
-        pq.pop();
-    }
+void prims(int& mstWeight, vector<Edge*>& mst, vector<Edge*> dependencies, Node* start) {
+    priority_queue<Edge*, vector<Edge*>, Compare> pq;
+    addEdges(start, pq, dependencies);
 
-
-    addEdges(pq, dependencies, nodes[0], graph);
-    mst.push_back(nodes[0]);
-
-    while((!pq.empty()) && (edgeCount != m)) {
-        vector<string> edge = pq.top();
+    while (!pq.empty()) {
+        Edge* e = pq.top();
         pq.pop();
 
-        Node* curr;
-        for (int i = 0; i < nodes.size(); i++) {
-            if (nodes[i]->name == edge[1]) {
-                curr = nodes[i];
-            }
+        if (e->from->visited == false) {
+            mst.push_back(e);
+            mstWeight += e->cost;
+            addEdges(e->from, pq, dependencies);
         }
-
-        if (curr->visited) {
-            continue;
+        if (e->to->visited == false) {
+            mst.push_back(e);
+            mstWeight += e->cost;
+            addEdges(e->to, pq, dependencies);
         }
-        edgeCount++;
-        mst.push_back(curr);
-        sumMST += stoi(edge[2]);
-
-        addEdges(pq, dependencies, curr, graph);
     }
-    if (edgeCount != m) {
-        return -1;
-    }
-
-    return sumMST;
 }
+
+
 
 int main() {
-    // Initialize
     vector<Node*> nodes;
-    vector<vector<string> > dependencies;
+    vector<Edge*> dependencies;
 
-    // Read input file
     readFile(nodes, dependencies);
 
-    // Build graph
-    unordered_map<Node*, vector<Node*> > graph = buildGraph(nodes, dependencies);
 
-    // Generate and sum MST
-    vector<Node*> tree;
-    int MST = generateMST(nodes, dependencies, graph, tree);
-    if (MST == -1) {
-        cout << "No Minimum Spanning Tree Exists" << endl;
-    } else {
-        cout << MST << endl;
+    // Prims for PreSwitches
+    int preSwitchCost = 0;
+    vector<Edge*> preSwitchMST;
+    vector<Edge*> preSwitchDependencies;
+    Node* start = nodes[0];
+
+    for (int i = 0; i < nodes.size(); i++) {
+        if (nodes[i]->type == 'b') {
+            start = nodes[i];
+        }
     }
+
+    for (int i = 0; i < dependencies.size(); i++) {
+        if (preSwitch(dependencies[i]->from) && preSwitch(dependencies[i]->to)) {
+            preSwitchDependencies.push_back(dependencies[i]);
+        }
+    }
+
+    prims(preSwitchCost, preSwitchMST, preSwitchDependencies, start);
+
+    // --------------------------------------------------------------------------------------------------------------------------------------------
+
+    // Prims for Switches
+    int switchCost = preSwitchCost;
+    vector<Edge*> switchMST = preSwitchMST;
+    vector<Edge*> switchDependencies = preSwitchDependencies;
+    
+    vector<Edge*> switches;
+    for (int i = 0; i < dependencies.size(); i++) {
+        if (dependencies[i]->from->type == 's' || dependencies[i]->to->type == 's') {
+            switches.push_back(dependencies[i]);
+        }
+    }
+
+    // for (int i = 0; i < switches.size(); i++) {
+    //     if (switches[i]->from->type == 's') {
+    //         start = switches[i]->from;
+    //     }
+    //     if (switches[i]->to->type == 's') {
+    //         start = switches[i]->to;
+    //     }
+    // }
+
+    for (int i = 0; i < dependencies.size(); i++) {
+        if ((isSwitch(dependencies[i]->from) && preSwitch(dependencies[i]->to)) || (isSwitch(dependencies[i]->to) && preSwitch(dependencies[i]->from))) {
+            switchDependencies.push_back(dependencies[i]);
+        }
+    }
+
+    for (int i = 0; i < dependencies.size(); i++) {
+        if ((postSwitch(dependencies[i]->from) && isSwitch(dependencies[i]->to)) || (postSwitch(dependencies[i]->to) && isSwitch(dependencies[i]->from))) {
+            switchDependencies.push_back(dependencies[i]);
+        }
+        if (postSwitch(dependencies[i]->from) && postSwitch(dependencies[i]->to)) {
+            switchDependencies.push_back(dependencies[i]);
+        }
+    }
+
+    prims(switchCost, switchMST, switchDependencies, start);
+
+
+
+
+
+
+    cout << switchCost + 1 << endl;
+
+    // print mst
+    // for (int i = 0; i < switchMST.size(); i++) {
+    //     cout << switchMST[i]->from->name << " " << switchMST[i]->to->name << " " << switchMST[i]->cost << " ---> ";
+    // }
+    // cout << endl;
 
     return 0;
 }
