@@ -15,6 +15,7 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <algorithm>
 
 using namespace std;
 
@@ -75,7 +76,7 @@ struct compareX {
 // Closest points in strip
 float closestInStrip(vector<Point> strip, int size, float width) {
     float min = width;
-    sort(strip.begin(), strip.end(), compareY());
+    std::sort(strip.begin(), strip.end(), compareY());
 
     for (int i = 0; i < size; i++) {
         for (int j = i + 1; j < size && (strip[j].y - strip[i].y) < min; j++) {
@@ -114,7 +115,7 @@ float closestRecurse(vector<Point> input, int size) {
 
 // Find closest pair of points
 float closest(vector<Point> input, int n) {
-    sort(input.begin(), input.end(), compareX());
+    std::sort(input.begin(), input.end(), compareX());
     return closestRecurse(input, n);
 }
 
