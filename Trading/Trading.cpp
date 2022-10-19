@@ -23,7 +23,7 @@ using namespace std::chrono;
 
 // Point Object
 struct Point {
-    float x, y;
+    double x, y;
 };
 
 // Compare two points by y coordinate -- Solution found on StackOverflow (https://stackoverflow.com/questions/1380463/sorting-a-vector-of-custom-objects)
@@ -44,7 +44,7 @@ struct compareX {
 void readInput(vector<Point>& input, int size) {
     input.empty();
     for (int i = 0; i < size; i++) {
-        float x, y;
+        double x, y;
         cin >> x >> y;
         Point p = {x, y};
         input.push_back(p);
@@ -52,16 +52,16 @@ void readInput(vector<Point>& input, int size) {
 }
 
 // X and Y Distance
-float distance(Point p1, Point p2) {
+double distance(Point p1, Point p2) {
     return sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
 }
 
 // Brute force method
-float bruteForce(vector<Point> input) {
-    float min = distance(input[0], input[1]);
+double bruteForce(vector<Point> input) {
+    double min = distance(input[0], input[1]);
     for (int i = 0; i < input.size(); i++) {
         for (int j = i + 1; j < input.size(); j++) {
-            float d = distance(input[i], input[j]);
+            double d = distance(input[i], input[j]);
             if (d < min) {
                 min = d;
             }
@@ -71,8 +71,8 @@ float bruteForce(vector<Point> input) {
 }
 
 // Closest points in strip
-float closestInStrip(vector<Point> strip, int size, float width) {
-    float min = width;
+double closestInStrip(vector<Point> strip, int size, double width) {
+    double min = width;
     for (int i = 0; i < size; i++) {
         for (int j = i + 1; j < size && (strip[j].y - strip[i].y) < min; j++) {
             if (distance(strip[i], strip[j]) < min) {
@@ -84,7 +84,7 @@ float closestInStrip(vector<Point> strip, int size, float width) {
 }
 
 // Recursive helper method to find smallest distance
-float closestRecurse(vector<Point> sortedX, vector<Point> sortedY, int size) {
+double closestRecurse(vector<Point> sortedX, vector<Point> sortedY, int size) {
     if (size <= 3) {
         return bruteForce(sortedX);
     }
@@ -101,11 +101,11 @@ float closestRecurse(vector<Point> sortedX, vector<Point> sortedY, int size) {
         }
     }
 
-    float wleft = closestRecurse(sortedX, sortedYLeft, mid);
+    double wleft = closestRecurse(sortedX, sortedYLeft, mid);
     sortedX.push_back(midPoint);
-    float wright = closestRecurse(sortedX, sortedYRight, size - mid);
+    double wright = closestRecurse(sortedX, sortedYRight, size - mid);
 
-    float width = std::min(wleft, wright);
+    double width = std::min(wleft, wright);
 
     vector<Point> strip;
     for (int i = 0; i < size; i++) {
@@ -118,7 +118,7 @@ float closestRecurse(vector<Point> sortedX, vector<Point> sortedY, int size) {
 }
 
 // Find closest pair of points
-float closest(vector<Point> input, int size) {
+double closest(vector<Point> input, int size) {
     vector<Point> sortedX = input;
     vector<Point> sortedY = input;
 
@@ -143,7 +143,7 @@ int main() {
         vector<Point> input;
         readInput(input, size);
         int size = sizeof(input) / sizeof(input[0]);
-        float result = closest(input, size);
+        double result = closest(input, size);
 
         if (result > 10000) {
             cout << "infinity" << endl;
