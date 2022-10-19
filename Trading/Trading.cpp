@@ -16,8 +16,10 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 // Point Object
 struct Point {
@@ -130,6 +132,8 @@ float closest(vector<Point> input, int size) {
 
 int main() {
 
+    auto start = high_resolution_clock::now();
+
     int size = -1;
     while (size != 0) {
 
@@ -149,6 +153,10 @@ int main() {
             cout << fixed << setprecision(4) << result << endl;
         }
     }
+
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << endl << "Operation took: " << duration.count() << " microseconds" << endl;
 
     return 0;
 }
