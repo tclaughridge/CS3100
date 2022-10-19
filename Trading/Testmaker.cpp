@@ -22,6 +22,7 @@ int main(int argc, char** argv) {
         float r2 = LO + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(HI-LO)));
         file << r1 << " " << r2 << endl;
     }
+    file << 0;
 
     file.close();
 
