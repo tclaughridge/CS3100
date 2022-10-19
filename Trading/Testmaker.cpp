@@ -1,3 +1,10 @@
+/**
+ * @file Testmaker.cpp
+ * @author Thomas Laughridge (tcl5tu@virginia.edu)
+ * 
+ * @brief A program to make test files for the Closest Pair of Points problem. Example usage: ./a.out 'filename' 'numberOfPoints'
+ */
+
 #include <iostream>
 #include <random>
 #include <string>

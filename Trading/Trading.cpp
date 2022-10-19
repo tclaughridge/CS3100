@@ -53,7 +53,7 @@ void readInput(vector<Point>& input, int size) {
 
 // X and Y Distance
 float distance(Point p1, Point p2) {
-    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+    return sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
 }
 
 // Brute force method
@@ -73,8 +73,6 @@ float bruteForce(vector<Point> input) {
 // Closest points in strip
 float closestInStrip(vector<Point> strip, int size, float width) {
     float min = width;
-    std::sort(strip.begin(), strip.end(), compareY());
-
     for (int i = 0; i < size; i++) {
         for (int j = i + 1; j < size && (strip[j].y - strip[i].y) < min; j++) {
             if (distance(strip[i], strip[j]) < min) {
@@ -132,7 +130,7 @@ float closest(vector<Point> input, int size) {
 
 int main() {
 
-    auto start = high_resolution_clock::now();
+    // auto start = high_resolution_clock::now();
 
     int size = -1;
     while (size != 0) {
@@ -154,9 +152,9 @@ int main() {
         }
     }
 
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<milliseconds>(stop - start);
-    cout << endl << "Operation took: " << duration.count() << " milliseconds" << endl;
+    // auto stop = high_resolution_clock::now();
+    // auto duration = duration_cast<milliseconds>(stop - start);
+    // cout << endl << "Operation took: " << duration.count() << " milliseconds" << endl;
 
     return 0;
 }
