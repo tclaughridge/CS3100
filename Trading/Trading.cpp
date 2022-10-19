@@ -24,6 +24,20 @@ struct Point {
     float x, y;
 };
 
+// Compare two points by y coordinate -- Solution found on StackOverflow (https://stackoverflow.com/questions/1380463/sorting-a-vector-of-custom-objects)
+struct compareY {
+    inline bool operator() (const Point& p1, const Point& p2) {
+        return (p1.y < p2.y);
+    }
+};
+
+// Compare two points by x coordinate -- Solution found on StackOverflow (https://stackoverflow.com/questions/1380463/sorting-a-vector-of-custom-objects)
+struct compareX {
+    inline bool operator() (const Point& p1, const Point& p2) {
+        return (p1.x < p2.x);
+    }
+};
+
 // Read Input
 void readInput(vector<Point>& input, int size) {
     input.empty();
@@ -40,11 +54,6 @@ float distance(Point p1, Point p2) {
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
 
-// Min of two floats
-float min(float x, float y) { 
-    return (x < y)? x : y; 
-} 
-
 // Brute force method
 float bruteForce(vector<Point> input) {
     float min = distance(input[0], input[1]);
@@ -58,20 +67,6 @@ float bruteForce(vector<Point> input) {
     }
     return min;
 }
-
-// Compare two points by y coordinate -- Solution found on StackOverflow (https://stackoverflow.com/questions/1380463/sorting-a-vector-of-custom-objects)
-struct compareY {
-    inline bool operator() (const Point& p1, const Point& p2) {
-        return (p1.y < p2.y);
-    }
-};
-
-// Compare two points by x coordinate -- Solution found on StackOverflow (https://stackoverflow.com/questions/1380463/sorting-a-vector-of-custom-objects)
-struct compareX {
-    inline bool operator() (const Point& p1, const Point& p2) {
-        return (p1.x < p2.x);
-    }
-};
 
 // Closest points in strip
 float closestInStrip(vector<Point> strip, int size, float width) {
@@ -89,34 +84,48 @@ float closestInStrip(vector<Point> strip, int size, float width) {
 }
 
 // Recursive helper method to find smallest distance
-float closestRecurse(vector<Point> input, int size) {
+float closestRecurse(vector<Point> sortedX, vector<Point> sortedY, int size) {
     if (size <= 3) {
-        return bruteForce(input);
+        return bruteForce(sortedX);
     }
     
     int mid = size / 2;
-    Point midPoint = input[mid];
+    Point midPoint = sortedX[mid];
 
-    float wleft = closestRecurse(input, mid);
-    input.push_back(midPoint);
-    float wright = closestRecurse(input, size - mid);
-
-    float width = min(wleft, wright);
-
-    vector<Point> strip;
+    vector<Point> sortedYLeft, sortedYRight;
     for (int i = 0; i < size; i++) {
-        if (abs(input[i].x - midPoint.x) < width) {
-            strip.push_back(input[i]);
+        if (sortedY[i].x <= midPoint.x) {
+            sortedYLeft.push_back(sortedY[i]);
+        } else {
+            sortedYRight.push_back(sortedY[i]);
         }
     }
 
-    return min(width, closestInStrip(strip, strip.size(), width));
+    float wleft = closestRecurse(sortedX, sortedYLeft, mid);
+    sortedX.push_back(midPoint);
+    float wright = closestRecurse(sortedX, sortedYRight, size - mid);
+
+    float width = std::min(wleft, wright);
+
+    vector<Point> strip;
+    for (int i = 0; i < size; i++) {
+        if (abs(sortedY[i].x - midPoint.x) < width) {
+            strip.push_back(sortedY[i]);
+        }
+    }
+
+    return std::min(width, closestInStrip(strip, strip.size(), width));
 }
 
 // Find closest pair of points
-float closest(vector<Point> input, int n) {
-    std::sort(input.begin(), input.end(), compareX());
-    return closestRecurse(input, n);
+float closest(vector<Point> input, int size) {
+    vector<Point> sortedX = input;
+    vector<Point> sortedY = input;
+
+    std::sort(sortedX.begin(), sortedX.end(), compareX());
+    std::sort(sortedY.begin(), sortedY.end(), compareY());
+    
+    return closestRecurse(sortedX, sortedY, size);
 }
 
 int main() {
@@ -131,8 +140,8 @@ int main() {
 
         vector<Point> input;
         readInput(input, size);
-        int s = sizeof(input) / sizeof(input[0]);
-        float result = closest(input, s);
+        int size = sizeof(input) / sizeof(input[0]);
+        float result = closest(input, size);
 
         if (result > 10000) {
             cout << "infinity" << endl;
