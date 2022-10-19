@@ -128,7 +128,6 @@ int main() {
     while (size != 0) {
 
         cin >> size;
-        cout << size << endl;
         if (size == 0) {
             break;
         }
