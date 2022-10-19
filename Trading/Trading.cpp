@@ -145,8 +145,8 @@ int main() {
     }
 
     auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    cout << endl << "Operation took: " << duration.count() << " microseconds" << endl;
+    auto duration = duration_cast<milliseconds>(stop - start);
+    cout << endl << "Operation took: " << duration.count() << " milliseconds" << endl;
 
     return 0;
 }
