@@ -29,9 +29,9 @@ int main() {
 
     for (int i = 0; i < numCases; i++) {
         vector<vector<string> > input;
-        int b, m, c;
-        cin >> b >> m >> c;
-        for (int j = 0; j < c; j++) {
+        int toMove, toTake, numCompanies;
+        cin >> toMove >> toTake >> numCompanies;
+        for (int j = 0; j < numCompanies; j++) {
             vector<string> temp;
             string name, x, y;
             cin >> name >> x >> y;
@@ -40,7 +40,6 @@ int main() {
             temp.push_back(y);
             input.push_back(temp);
         }
-        int ship = b - m;
 
         priority_queue<vector<string>, vector<vector<string> >, Compare> pq;
 
@@ -56,6 +55,17 @@ int main() {
 
 
             // WHILE LOOP HERE
+            while (toMove - toTake > toTake) {
+                if (toMove % 2 == 0) {
+                    cost += half;
+                    toMove = (toMove / 2);
+                }
+                if (toMove % 2 == 1) {
+                    cost += half;
+                    toMove = (toMove / 2) + 1;
+                }
+            }
+            cost += (one * toMove);
 
             
             company.push_back(to_string(cost));
@@ -71,6 +81,16 @@ int main() {
             pq.pop();
         }
         pq.empty();
+
+
+
+        // // print input
+        // for (int j = 0; j < input.size(); j++) {
+        //     for (int k = 0; k < input[j].size(); k++) {
+        //         cout << input[j][k] << " ";
+        //     }
+        //     cout << endl;
+        // }
     }
 
     return 0;
